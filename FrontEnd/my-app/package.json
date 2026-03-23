@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^1.9.5",
+    "axios": "^1.13.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.26.2",
