@@ -16,6 +16,20 @@ pub enum StorageKey {
     Config,
     /// Escrow balance per quest
     EscrowBal(Symbol),
+    /// Data version storage key
+    Version,
+}
+
+/// Get current data version
+pub fn get_data_version(env: &Env) -> u32 {
+    let key = StorageKey::Version;
+    env.storage().persistent().get(&key).unwrap_or(0)
+}
+
+/// Set data version
+pub fn set_data_version(env: &Env, version: u32) {
+    let key = StorageKey::Version;
+    env.storage().persistent().set(&key, &version);
 }
 
 /// Store a quest
