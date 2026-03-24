@@ -224,11 +224,7 @@ pub fn unpause_contract(env: &Env, admin: Address) -> Result<(), Error> {
 pub fn get_remaining_signatures(env: &Env) -> Result<u32, Error> {
     let pause_state = get_pause_state(env)?;
     let signed = pause_state.pause_signers.len() as u32;
-    let remaining = if signed >= pause_state.required_signatures {
-        0
-    } else {
-        pause_state.required_signatures - signed
-    };
+    let remaining = pause_state.required_signatures.saturating_sub(signed);
     Ok(remaining)
 }
 
