@@ -24,6 +24,7 @@ import moderationConfig from './config/moderation.config';
 
 import { LoggerModule } from './common/logger/logger.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { TracingMiddleware } from './common/tracing/tracing.middleware';
 import { CacheModule } from './modules/cache/cache.module';
 import { HealthModule } from './modules/health/health.module';
 import { throttlerConfig } from './config/throttler.config';
@@ -80,6 +81,8 @@ import { CsrfGuard } from './common/guards/csrf.guard';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    // TracingMiddleware must run first: it sets the AsyncLocalStorage TraceContext
+    // that LoggerMiddleware and all subsequent handlers read from.
+    consumer.apply(TracingMiddleware, LoggerMiddleware).forRoutes('*');
   }
 }
