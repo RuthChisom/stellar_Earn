@@ -151,7 +151,7 @@ pub fn request_pause(env: &Env, requester: Address, reason: Option<Symbol>) -> R
     }
 
     // Check if we have reached the required number of signatures
-    if (pause_state.pause_signers.len() as u32) >= pause_state.required_signatures {
+    if pause_state.pause_signers.len() >= pause_state.required_signatures {
         pause_state.is_paused = true;
         pause_state.last_pause_time = env.ledger().timestamp();
 
@@ -223,7 +223,7 @@ pub fn unpause_contract(env: &Env, admin: Address) -> Result<(), Error> {
 /// Get remaining signatures needed to activate pause
 pub fn get_remaining_signatures(env: &Env) -> Result<u32, Error> {
     let pause_state = get_pause_state(env)?;
-    let signed = pause_state.pause_signers.len() as u32;
+    let signed = pause_state.pause_signers.len();
     let remaining = pause_state.required_signatures.saturating_sub(signed);
     Ok(remaining)
 }

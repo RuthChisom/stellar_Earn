@@ -1,7 +1,7 @@
 import type { Quest } from '@/lib/types/quest';
 import { QuestStatus, QuestDifficulty } from '@/lib/types/quest';
 
-export const mockQuests: Quest[] = [
+export const mockQuests: any[] = [
   {
     id: 'quest-1',
     title: 'Smart Contract Security Review',
@@ -22,6 +22,8 @@ export const mockQuests: Quest[] = [
     ],
     maxParticipants: 5,
     currentParticipants: 2,
+    creator: { id: 'admin', name: 'Admin' },
+    skills: [],
     createdAt: new Date('2024-01-15').toISOString(),
     updatedAt: new Date('2024-01-15').toISOString(),
   },
