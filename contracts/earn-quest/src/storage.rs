@@ -1,5 +1,6 @@
 use crate::errors::Error;
 use crate::types::{Quest, QuestStatus, Submission, SubmissionStatus, UserStats, EscrowInfo, QuestMetadata, PlatformStats, CreatorStats};
+use crate::validation;
 use soroban_sdk::{contracttype, Address, Env, Symbol, Vec, String};
 
 /// Storage key definitions for the contract's persistent data.
@@ -811,10 +812,12 @@ pub fn get_quest_ids(env: &Env) -> Vec<Symbol> {
         .unwrap_or_else(|| Vec::new(env))
 }
 
-pub fn add_quest_id(env: &Env, id: &Symbol) {
+pub fn add_quest_id(env: &Env, id: &Symbol) -> Result<(), Error> {
     let mut ids = get_quest_ids(env);
+    validation::validate_max_quests(ids.len())?;
     ids.push_back(id.clone());
     env.storage().instance().set(&DataKey::QuestIds, &ids);
+    Ok(())
 }
 
 //================================================================================
