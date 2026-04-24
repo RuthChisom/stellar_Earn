@@ -20,8 +20,15 @@ import {
   UserResponseDto,
   ChallengeResponseDto,
 } from './dto/auth.dto';
+import { TwoFactorLoginDto } from './dto/two-factor.dto';
 import * as crypto from 'crypto';
 import { Role } from '../../common/enums/role.enum';
+
+export interface AuthUser {
+  id: string;
+  stellarAddress: string;
+  role: Role;
+}
 
 export interface AuthUser {
   id: string;
@@ -61,7 +68,8 @@ export class AuthService {
   }
 
   /**
-   * Verify signature and login user
+   * Verify signature and login user (legacy — no 2FA check).
+   * Kept for backward compatibility; prefer verifySignatureAndLoginWith2fa.
    */
   async verifySignatureAndLogin(loginDto: LoginDto): Promise<TokenResponseDto> {
     const { stellarAddress, signature, challenge } = loginDto;
@@ -77,6 +85,56 @@ export class AuthService {
     }
 
     verifyStellarSignature(stellarAddress, signature, challenge);
+
+    const role = this.getRoleForAddress(stellarAddress);
+    const tokens = await this.generateTokens(stellarAddress, role);
+
+    return {
+      ...tokens,
+      user: this.mapToUserResponse(stellarAddress, role),
+    };
+  }
+
+  /**
+   * Verify signature and login with optional 2FA check.
+   *
+   * Flow:
+   *  1. Validate challenge expiry
+   *  2. Verify Stellar wallet signature
+   *  3. If 2FA is enabled for the address, verify the TOTP code
+   *  4. Issue JWT + refresh token pair
+   *
+   * The twoFactorService is injected optionally to avoid a circular
+   * dependency — callers pass it in from the controller.
+   */
+  async verifySignatureAndLoginWith2fa(
+    dto: TwoFactorLoginDto,
+    twoFactorService: { verifyLoginCode: (addr: string, code: string) => Promise<void>; is2faEnabled: (addr: string) => Promise<boolean> },
+  ): Promise<TokenResponseDto> {
+    const { stellarAddress, signature, challenge, totpCode } = dto;
+
+    const timestamp = extractTimestampFromChallenge(challenge);
+    const expirationMinutes = parseInt(
+      this.configService.get<string>('AUTH_CHALLENGE_EXPIRATION', '5'),
+      10,
+    );
+
+    if (isChallengeExpired(timestamp, expirationMinutes)) {
+      throw new UnauthorizedException('Challenge has expired');
+    }
+
+    verifyStellarSignature(stellarAddress, signature, challenge);
+
+    // 2FA check — only if enabled for this address
+    const is2faEnabled = await twoFactorService.is2faEnabled(stellarAddress);
+    if (is2faEnabled) {
+      if (!totpCode) {
+        throw new UnauthorizedException(
+          '2FA is enabled for this account. Please provide your TOTP code.',
+        );
+      }
+      await twoFactorService.verifyLoginCode(stellarAddress, totpCode);
+    }
 
     const role = this.getRoleForAddress(stellarAddress);
     const tokens = await this.generateTokens(stellarAddress, role);

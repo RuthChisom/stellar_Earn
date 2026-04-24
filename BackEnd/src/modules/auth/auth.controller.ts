@@ -26,11 +26,16 @@ import {
   RefreshTokenDto,
   UserResponseDto,
 } from './dto/auth.dto';
+import { TwoFactorLoginDto } from './dto/two-factor.dto';
+import { TwoFactorService } from './services/two-factor.service';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly twoFactorService: TwoFactorService,
+  ) {}
 
   @Post('challenge')
   @HttpCode(HttpStatus.OK)
@@ -51,7 +56,12 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @RateLimit({ name: 'auth', limit: 5 })
-  @ApiOperation({ summary: 'Login with Stellar wallet signature' })
+  @ApiOperation({
+    summary: 'Login with Stellar wallet signature',
+    description:
+      'Authenticates using a Stellar wallet signature. ' +
+      'If 2FA is enabled for the account, a valid `totpCode` must also be provided.',
+  })
   @ApiResponse({
     status: 200,
     description: 'Login successful',
@@ -59,11 +69,14 @@ export class AuthController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Invalid signature or expired challenge',
+    description: 'Invalid signature, expired challenge, or invalid 2FA code',
   })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async login(@Body() loginDto: LoginDto): Promise<TokenResponseDto> {
-    return this.authService.verifySignatureAndLogin(loginDto);
+  async login(@Body() loginDto: TwoFactorLoginDto): Promise<TokenResponseDto> {
+    return this.authService.verifySignatureAndLoginWith2fa(
+      loginDto,
+      this.twoFactorService,
+    );
   }
 
   @Post('refresh')
