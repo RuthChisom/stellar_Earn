@@ -63,7 +63,8 @@ export function useQuests(
     setQuestsLoading,
     setQuestsError,
     setQuests,
-    setPagination
+    setPagination,
+    getQuests
   ]);
 
   useEffect(() => {

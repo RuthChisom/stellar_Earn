@@ -59,7 +59,8 @@ export function useSubmissions(
     setLoading,
     setError,
     setSubmissions,
-    setPagination
+    setPagination,
+    fetchSubmissions
   ]);
 
   useEffect(() => {
