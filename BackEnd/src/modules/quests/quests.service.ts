@@ -14,14 +14,15 @@ import { QueryQuestsDto } from './dto/query-quests.dto';
 import {
   QuestResponseDto,
   PaginatedQuestsResponseDto,
-} from './dto/quest-response.dto';
+  QuestCreatedEvent,
+  QuestUpdatedEvent,
+  QuestDeletedEvent,
+} from './dto';
+import { withSoftDelete } from '../../common/utils/soft-delete.util';
 import { CacheService } from '../cache/cache.service';
 import { CACHE_KEYS, CACHE_TTL } from '../../config/cache.config';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { QuestCreatedEvent } from '../../events/dto/quest-created.event';
-import { QuestDeletedEvent } from '../../events/dto/quest-deleted.event';
-import { QuestUpdatedEvent } from '../../events/dto/quest-updated.event';
 import { ModerationService } from '../moderation/moderation.service';
 
 @Injectable()
