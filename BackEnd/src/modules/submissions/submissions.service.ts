@@ -52,7 +52,7 @@ export class SubmissionsService {
     // instead of issuing two extra round-trips after the initial lookup.
     const submission = await this.submissionsRepository.findOne({
       where: { id: submissionId },
-      relations: ['quest', 'user'],
+      withDeleted: false,
     });
 
     if (!submission) {
@@ -164,6 +164,7 @@ export class SubmissionsService {
     // Eager-load the quest and user relations in a single JOINed query
     // instead of issuing two extra round-trips after the initial lookup.
     const submission = await this.submissionsRepository.findOne({
+      withDeleted: false,
       where: { id: submissionId },
       relations: ['quest', 'user'],
     });

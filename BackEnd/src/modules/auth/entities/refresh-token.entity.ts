@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Index,
+  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity('refresh_tokens')
@@ -15,7 +16,11 @@ export class RefreshToken {
   @Index()
   token: string;
 
-  @Column()
+  @Column({ nullable: true })
+  @Index()
+  userId: string;
+
+  @Column({ nullable: true })
   @Index()
   stellarAddress: string;
 
@@ -27,4 +32,7 @@ export class RefreshToken {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }
